@@ -1,0 +1,1921 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KITHub - Point of Sale & Inventory Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  :root {
+    --primary: #FF6B35;
+    --primary-dark: #e55a24;
+    --primary-light: #ff8c5a;
+    --secondary: #2C3E50;
+    --secondary-light: #34495e;
+    --accent: #27AE60;
+    --accent-dark: #1e8449;
+    --danger: #E74C3C;
+    --warning: #F39C12;
+    --info: #3498DB;
+    --bg: #F0F2F5;
+    --card-bg: #FFFFFF;
+    --text-primary: #2C3E50;
+    --text-secondary: #7F8C8D;
+    --border: #E0E0E0;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --shadow-hover: 0 8px 25px rgba(0,0,0,0.15);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Prompt', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  /* ===== APPBAR ===== */
+  .appbar {
+    background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-light) 100%);
+    color: white;
+    padding: 0 24px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  }
+
+  .appbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: white;
+  }
+
+  .appbar-logo {
+    width: 40px; height: 40px;
+    background: var(--primary);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 2px 8px rgba(255,107,53,0.4);
+    animation: pulse-logo 2s infinite;
+  }
+
+  @keyframes pulse-logo {
+    0%,100% { box-shadow: 0 2px 8px rgba(255,107,53,0.4); }
+    50% { box-shadow: 0 2px 20px rgba(255,107,53,0.7); }
+  }
+
+  .appbar-title { font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+  .appbar-subtitle { font-size: 11px; opacity: 0.7; letter-spacing: 0.5px; }
+
+  .appbar-actions { display: flex; align-items: center; gap: 8px; }
+
+  .icon-btn {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: white;
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .icon-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
+
+  .badge {
+    position: absolute;
+    top: -4px; right: -4px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    width: 20px; height: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: badge-pop 0.3s ease;
+    border: 2px solid var(--secondary);
+  }
+
+  @keyframes badge-pop {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  .badge.hidden { display: none; }
+
+  /* ===== NAVBAR ===== */
+  .navbar {
+    background: white;
+    position: fixed;
+    top: 64px; left: 0; right: 0;
+    z-index: 999;
+    display: flex;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    overflow-x: auto;
+  }
+
+  .nav-tab {
+    padding: 16px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-bottom: 3px solid transparent;
+    transition: all 0.25s;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+
+  .nav-tab:hover { color: var(--primary); background: rgba(255,107,53,0.05); }
+
+  .nav-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    background: rgba(255,107,53,0.08);
+  }
+
+  .nav-tab .material-icons { font-size: 20px; }
+
+  /* ===== MAIN CONTENT ===== */
+  .main-content {
+    margin-top: 128px;
+    padding: 24px;
+    min-height: calc(100vh - 128px);
+  }
+
+  .page { display: none; animation: fadeInPage 0.3s ease; }
+  .page.active { display: block; }
+
+  @keyframes fadeInPage {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+
+  .card:hover { box-shadow: var(--shadow-hover); }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-title {
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-body { padding: 20px; }
+
+  /* ===== STAT CARDS ===== */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+  }
+
+  .stat-card.orange::before { background: var(--primary); }
+  .stat-card.green::before { background: var(--accent); }
+  .stat-card.blue::before { background: var(--info); }
+  .stat-card.red::before { background: var(--danger); }
+
+  .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+
+  .stat-icon {
+    width: 52px; height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+  }
+
+  .stat-icon.orange { background: rgba(255,107,53,0.1); color: var(--primary); }
+  .stat-icon.green { background: rgba(39,174,96,0.1); color: var(--accent); }
+  .stat-icon.blue { background: rgba(52,152,219,0.1); color: var(--info); }
+  .stat-icon.red { background: rgba(231,76,60,0.1); color: var(--danger); }
+
+  .stat-info { flex: 1; }
+  .stat-value { font-size: 26px; font-weight: 700; line-height: 1; }
+  .stat-label { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+  .stat-change { font-size: 12px; margin-top: 6px; }
+  .stat-change.up { color: var(--accent); }
+  .stat-change.down { color: var(--danger); }
+
+  /* ===== DASHBOARD ===== */
+  .dash-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .chart-container {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .chart-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-primary);
+  }
+
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    height: 160px;
+    padding-top: 10px;
+  }
+
+  .bar-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+
+  .bar {
+    width: 100%;
+    border-radius: 6px 6px 0 0;
+    background: linear-gradient(180deg, var(--primary-light), var(--primary));
+    transition: height 0.8s cubic-bezier(0.34,1.56,0.64,1);
+    min-height: 4px;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .bar:hover { filter: brightness(1.1); }
+
+  .bar-label { font-size: 11px; color: var(--text-secondary); text-align: center; }
+  .bar-value { font-size: 11px; font-weight: 600; color: var(--primary); }
+
+  .top-products { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+
+  .product-rank-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .product-rank-item:last-child { border-bottom: none; }
+
+  .rank-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .rank-num.gold { background: #FFD700; color: #333; }
+  .rank-num.silver { background: #C0C0C0; color: #333; }
+  .rank-num.bronze { background: #CD7F32; color: white; }
+  .rank-num.other { background: var(--border); color: var(--text-secondary); }
+
+  .rank-info { flex: 1; }
+  .rank-name { font-size: 13px; font-weight: 500; }
+  .rank-sold { font-size: 12px; color: var(--text-secondary); }
+  .rank-amount { font-size: 13px; font-weight: 600; color: var(--accent); }
+
+  /* ===== LOW STOCK ALERTS ===== */
+  .alert-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    margin-top: 20px;
+  }
+
+  .alert-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    background: rgba(231,76,60,0.08);
+    border: 1px solid rgba(231,76,60,0.2);
+    margin-bottom: 8px;
+    animation: pulse-alert 2s infinite;
+  }
+
+  @keyframes pulse-alert {
+    0%,100% { border-color: rgba(231,76,60,0.2); }
+    50% { border-color: rgba(231,76,60,0.5); }
+  }
+
+  .alert-item:last-child { margin-bottom: 0; }
+  .alert-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--danger); flex-shrink: 0; }
+  .alert-text { flex: 1; font-size: 13px; }
+  .alert-stock { font-size: 12px; font-weight: 700; color: var(--danger); }
+
+  /* ===== POS PAGE ===== */
+  .pos-layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 20px;
+    height: calc(100vh - 160px);
+  }
+
+  .pos-products {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .pos-toolbar {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .search-box input {
+    border: none;
+    background: none;
+    padding: 10px 0;
+    font-family: 'Prompt', sans-serif;
+    font-size: 14px;
+    width: 100%;
+    outline: none;
+    color: var(--text-primary);
+  }
+
+  .cat-filter {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .cat-btn {
+    padding: 6px 14px;
+    border: 1.5px solid var(--border);
+    background: white;
+    border-radius: 20px;
+    font-family: 'Prompt', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+
+  .cat-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .cat-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    padding: 16px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .product-card {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+  }
+
+  .product-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255,107,53,0.2);
+  }
+
+  .product-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(50%);
+  }
+
+  .product-card.low-stock { border-color: var(--danger); }
+
+  .product-img {
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .product-info { padding: 10px; }
+  .product-name { font-size: 12px; font-weight: 600; margin-bottom: 4px; line-height: 1.3; }
+  .product-price { font-size: 15px; font-weight: 700; color: var(--primary); }
+  .product-stock { font-size: 11px; color: var(--text-secondary); }
+  .product-stock.low { color: var(--danger); font-weight: 600; }
+
+  .out-of-stock-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  /* ===== CART ===== */
+  .cart-panel {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .cart-header {
+    background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-light) 100%);
+    color: white;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .cart-title { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+
+  .cart-items { flex: 1; overflow-y: auto; padding: 12px; }
+
+  .cart-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-secondary);
+    gap: 12px;
+    padding: 40px 0;
+  }
+
+  .cart-empty .material-icons { font-size: 48px; opacity: 0.3; }
+  .cart-empty p { font-size: 14px; opacity: 0.6; }
+
+  .cart-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    margin-bottom: 8px;
+    transition: all 0.2s;
+    animation: slideIn 0.3s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .cart-item-name { flex: 1; font-size: 12px; font-weight: 500; line-height: 1.3; }
+  .cart-item-price { font-size: 12px; color: var(--text-secondary); }
+  .cart-item-total { font-size: 13px; font-weight: 700; color: var(--primary); min-width: 60px; text-align: right; }
+
+  .qty-controls { display: flex; align-items: center; gap: 4px; }
+
+  .qty-btn {
+    width: 24px; height: 24px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    transition: all 0.15s;
+  }
+
+  .qty-btn.minus { background: rgba(231,76,60,0.1); color: var(--danger); }
+  .qty-btn.plus { background: rgba(39,174,96,0.1); color: var(--accent); }
+  .qty-btn:hover { transform: scale(1.1); }
+  .qty-num { font-size: 13px; font-weight: 700; min-width: 20px; text-align: center; }
+
+  .del-btn {
+    width: 24px; height: 24px;
+    border: none;
+    background: rgba(231,76,60,0.1);
+    color: var(--danger);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .del-btn:hover { background: var(--danger); color: white; }
+  .del-btn .material-icons { font-size: 14px; }
+
+  /* ===== CART SUMMARY ===== */
+  .cart-summary {
+    padding: 16px;
+    border-top: 1px solid var(--border);
+    background: #FAFAFA;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    font-size: 13px;
+  }
+
+  .summary-row.total {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+    border-top: 2px solid var(--border);
+    margin-top: 8px;
+    padding-top: 10px;
+  }
+
+  .summary-row.vat { color: var(--text-secondary); }
+  .summary-row.discount { color: var(--accent); }
+
+  .text-field {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'Prompt', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+    background: white;
+    margin-top: 4px;
+  }
+
+  .text-field:focus { border-color: var(--primary); }
+  .text-field::placeholder { color: var(--text-secondary); }
+
+  .field-label { font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-top: 10px; display: block; }
+
+  .btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Prompt', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(255,107,53,0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(255,107,53,0.4);
+  }
+
+  .btn-secondary {
+    background: var(--bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover { background: var(--border); }
+
+  .btn-success {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(39,174,96,0.3);
+  }
+
+  .btn-danger {
+    background: rgba(231,76,60,0.1);
+    color: var(--danger);
+  }
+
+  .btn-danger:hover { background: var(--danger); color: white; }
+
+  /* ===== SNACKBAR ===== */
+  .snackbar {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #333;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 9999;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    white-space: nowrap;
+  }
+
+  .snackbar.show { transform: translateX(-50%) translateY(0); }
+  .snackbar.success { background: var(--accent); }
+  .snackbar.warning { background: var(--warning); }
+  .snackbar.error { background: var(--danger); }
+
+  /* ===== INVENTORY PAGE ===== */
+  .table-container {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .data-table th {
+    background: var(--secondary);
+    color: white;
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .data-table th:first-child { border-radius: 0; }
+
+  .data-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    vertical-align: middle;
+  }
+
+  .data-table tr:hover td { background: rgba(255,107,53,0.03); }
+  .data-table tr:last-child td { border-bottom: none; }
+
+  .stock-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+  }
+
+  .progress-fill.high { background: var(--accent); }
+  .progress-fill.medium { background: var(--warning); }
+  .progress-fill.low { background: var(--danger); }
+
+  /* ===== SWITCH ===== */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+  }
+
+  .switch input { opacity: 0; width: 0; height: 0; }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #ccc;
+    border-radius: 24px;
+    transition: 0.3s;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: '';
+    height: 18px; width: 18px;
+    left: 3px; bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.3s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+
+  input:checked + .slider { background: var(--accent); }
+  input:checked + .slider:before { transform: translateX(20px); }
+
+  /* ===== CHIPS / BADGES ===== */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .chip.active { background: rgba(39,174,96,0.12); color: var(--accent); }
+  .chip.inactive { background: rgba(127,140,141,0.12); color: var(--text-secondary); }
+  .chip.low { background: rgba(231,76,60,0.12); color: var(--danger); }
+  .chip.warning { background: rgba(243,156,18,0.12); color: var(--warning); }
+
+  /* ===== PRODUCTS PAGE ===== */
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 20px;
+  }
+
+  .product-full-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: all 0.3s;
+    position: relative;
+  }
+
+  .product-full-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+  }
+
+  .product-full-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .product-category-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+    backdrop-filter: blur(4px);
+  }
+
+  .cat-micro { background: rgba(52,152,219,0.85); }
+  .cat-sensor { background: rgba(39,174,96,0.85); }
+  .cat-display { background: rgba(155,89,182,0.85); }
+  .cat-kit { background: rgba(255,107,53,0.85); }
+
+  .product-full-info { padding: 16px; }
+  .product-full-name { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .product-full-price { font-size: 20px; font-weight: 700; color: var(--primary); }
+  .product-full-price span { font-size: 13px; color: var(--text-secondary); font-weight: 400; }
+
+  .product-full-actions {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .stock-info { font-size: 12px; color: var(--text-secondary); }
+  .stock-num { font-weight: 700; }
+  .stock-num.low-stock { color: var(--danger); }
+
+  /* ===== RECEIPT MODAL ===== */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s;
+    backdrop-filter: blur(2px);
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal {
+    background: white;
+    border-radius: var(--radius);
+    width: 420px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: modalPop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  @keyframes modalPop {
+    from { opacity: 0; transform: scale(0.8) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-header {
+    background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-light) 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title { font-size: 16px; font-weight: 600; }
+  .modal-body { padding: 20px; }
+  .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+
+  .receipt {
+    font-family: 'Courier New', monospace;
+    background: white;
+    padding: 20px;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+  }
+
+  .receipt-header { text-align: center; margin-bottom: 16px; }
+  .receipt-header h2 { font-size: 20px; color: var(--primary); letter-spacing: 2px; font-family: 'Prompt', sans-serif; }
+  .receipt-header p { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+
+  .receipt-divider { border: none; border-top: 1px dashed #ccc; margin: 12px 0; }
+
+  .receipt-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 3px 0;
+  }
+
+  .receipt-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 6px 0;
+    color: var(--primary);
+  }
+
+  .receipt-footer { text-align: center; margin-top: 16px; font-size: 11px; color: var(--text-secondary); }
+
+  /* ===== PAGE HEADER ===== */
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .page-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #aaa; }
+
+  /* ===== PRINT ===== */
+  @media print {
+    .modal-overlay { position: static; background: none; }
+    .modal { box-shadow: none; width: 100%; }
+    .modal-header, .modal-footer { display: none; }
+    body > *:not(.modal-overlay) { display: none; }
+  }
+
+  /* Category color dots */
+  .cat-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+  }
+
+  .table-search {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+  }
+
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0 12px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .section-divider::before,
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+</style>
+</head>
+<body>
+
+<!-- APPBAR -->
+<header class="appbar">
+  <div class="appbar-brand">
+    <div class="appbar-logo">🔧</div>
+    <div>
+      <div class="appbar-title">KITHub</div>
+      <div class="appbar-subtitle">Point of Sale & Inventory</div>
+    </div>
+  </div>
+  <div class="appbar-actions">
+    <button class="icon-btn" onclick="goToPage('pos')" title="เปิดหน้า POS">
+      <span class="material-icons">point_of_sale</span>
+    </button>
+    <button class="icon-btn" id="cart-fab" onclick="goToPage('pos')" title="ตะกร้าสินค้า">
+      <span class="material-icons">shopping_cart</span>
+      <span class="badge hidden" id="cart-badge">0</span>
+    </button>
+    <button class="icon-btn" title="การแจ้งเตือน">
+      <span class="material-icons">notifications</span>
+      <span class="badge" id="notif-badge">4</span>
+    </button>
+  </div>
+</header>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a class="nav-tab active" data-page="dashboard" onclick="goToPage('dashboard')">
+    <span class="material-icons">dashboard</span> Dashboard
+  </a>
+  <a class="nav-tab" data-page="pos" onclick="goToPage('pos')">
+    <span class="material-icons">point_of_sale</span> POS ขายหน้าร้าน
+  </a>
+  <a class="nav-tab" data-page="inventory" onclick="goToPage('inventory')">
+    <span class="material-icons">inventory_2</span> Inventory คลังสินค้า
+  </a>
+  <a class="nav-tab" data-page="products" onclick="goToPage('products')">
+    <span class="material-icons">category</span> Products สินค้า
+  </a>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+
+  <!-- ===== DASHBOARD PAGE ===== -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <div>
+        <div class="page-title"><span class="material-icons" style="color:var(--primary)">dashboard</span> Dashboard</div>
+        <div class="page-subtitle" id="dash-date">วันนี้ — กำลังโหลด...</div>
+      </div>
+      <button class="btn btn-primary" style="width:auto;padding:10px 20px" onclick="refreshDashboard()">
+        <span class="material-icons" style="font-size:18px">refresh</span> รีเฟรช
+      </button>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stat-grid">
+      <div class="stat-card orange">
+        <div class="stat-icon orange"><span class="material-icons">payments</span></div>
+        <div class="stat-info">
+          <div class="stat-value" id="stat-revenue">฿18,450</div>
+          <div class="stat-label">ยอดขายวันนี้</div>
+          <div class="stat-change up">▲ +12.5% จากเมื่อวาน</div>
+        </div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon green"><span class="material-icons">receipt_long</span></div>
+        <div class="stat-info">
+          <div class="stat-value" id="stat-orders">24</div>
+          <div class="stat-label">จำนวนคำสั่งซื้อ</div>
+          <div class="stat-change up">▲ +3 จากเมื่อวาน</div>
+        </div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-icon blue"><span class="material-icons">inventory</span></div>
+        <div class="stat-info">
+          <div class="stat-value">16</div>
+          <div class="stat-label">ชนิดสินค้าทั้งหมด</div>
+          <div class="stat-change" style="color:var(--info)">📦 4 หมวดหมู่</div>
+        </div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon red"><span class="material-icons">warning</span></div>
+        <div class="stat-info">
+          <div class="stat-value" id="stat-lowstock">4</div>
+          <div class="stat-label">สินค้าใกล้หมด</div>
+          <div class="stat-change down">⚠ ต้องสั่งซื้อเพิ่ม</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHARTS + TOP PRODUCTS -->
+    <div class="dash-grid">
+      <div class="chart-container">
+        <div class="chart-title"><span class="material-icons" style="color:var(--primary)">bar_chart</span> ยอดขาย 7 วันที่ผ่านมา</div>
+        <div class="bar-chart" id="sales-chart"></div>
+        <div style="display:flex;gap:20px;margin-top:12px;font-size:12px;color:var(--text-secondary)">
+          <span>📊 ยอดรวม 7 วัน: <strong style="color:var(--primary)">฿94,230</strong></span>
+          <span>📈 เฉลี่ย/วัน: <strong style="color:var(--accent)">฿13,461</strong></span>
+        </div>
+      </div>
+
+      <div class="top-products">
+        <div class="chart-title"><span class="material-icons" style="color:var(--warning)">emoji_events</span> สินค้าขายดีประจำสัปดาห์</div>
+        <div id="top-products-list"></div>
+      </div>
+    </div>
+
+    <!-- LOW STOCK ALERT -->
+    <div class="alert-card" style="margin-top:20px">
+      <div class="card-title" style="margin-bottom:12px">
+        <span class="material-icons" style="color:var(--danger)">notification_important</span>
+        สินค้าใกล้หมดสต๊อก (น้อยกว่า 5 ชิ้น)
+      </div>
+      <div id="low-stock-alerts"></div>
+    </div>
+  </div>
+
+  <!-- ===== POS PAGE ===== -->
+  <div class="page" id="page-pos">
+    <div class="pos-layout">
+      <!-- Products Panel -->
+      <div class="pos-products">
+        <div class="pos-toolbar">
+          <div class="search-box">
+            <span class="material-icons" style="color:var(--text-secondary);font-size:20px">search</span>
+            <input type="text" id="pos-search" placeholder="ค้นหาสินค้า..." oninput="filterPosProducts()">
+          </div>
+          <div class="cat-filter">
+            <button class="cat-btn active" onclick="filterByCategory(this,'all')">ทั้งหมด</button>
+            <button class="cat-btn" onclick="filterByCategory(this,'Microcontroller')">MCU</button>
+            <button class="cat-btn" onclick="filterByCategory(this,'Sensors')">Sensors</button>
+            <button class="cat-btn" onclick="filterByCategory(this,'Display & Output')">Display</button>
+            <button class="cat-btn" onclick="filterByCategory(this,'Starter Kits')">Kits</button>
+          </div>
+        </div>
+        <div class="product-grid" id="pos-product-grid"></div>
+      </div>
+
+      <!-- Cart Panel -->
+      <div class="cart-panel">
+        <div class="cart-header">
+          <div class="cart-title">
+            <span class="material-icons">shopping_cart</span>
+            ตะกร้าสินค้า
+            <span id="cart-count-label" style="background:var(--primary);padding:2px 8px;border-radius:12px;font-size:12px">0</span>
+          </div>
+          <button class="icon-btn" onclick="clearCart()" title="ล้างตะกร้า">
+            <span class="material-icons" style="font-size:20px">delete_sweep</span>
+          </button>
+        </div>
+
+        <div class="cart-items" id="cart-items">
+          <div class="cart-empty" id="cart-empty">
+            <span class="material-icons">shopping_cart</span>
+            <p>ยังไม่มีสินค้าในตะกร้า</p>
+            <p style="font-size:12px">คลิกที่สินค้าเพื่อเพิ่มลงตะกร้า</p>
+          </div>
+        </div>
+
+        <div class="cart-summary">
+          <div class="summary-row">
+            <span>ราคารวม</span>
+            <span id="subtotal">฿0.00</span>
+          </div>
+          <div class="summary-row discount" id="discount-row" style="display:none">
+            <span>ส่วนลด</span>
+            <span id="discount-amount">-฿0.00</span>
+          </div>
+          <div class="summary-row vat">
+            <span>VAT 7%</span>
+            <span id="vat-amount">฿0.00</span>
+          </div>
+          <div class="summary-row total">
+            <span>รวมทั้งหมด</span>
+            <span id="grand-total">฿0.00</span>
+          </div>
+
+          <label class="field-label">รหัสส่วนลด (Discount Code)</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" class="text-field" id="discount-code" placeholder="KITHUB10 / STEM20 / VIP50" style="text-transform:uppercase;margin:0;flex:1">
+            <button class="btn btn-secondary" style="width:auto;padding:10px 14px;margin:0;border-radius:8px" onclick="applyDiscount()">
+              <span class="material-icons" style="font-size:18px">local_offer</span>
+            </button>
+          </div>
+
+          <label class="field-label">รับเงิน (บาท)</label>
+          <input type="number" class="text-field" id="cash-received" placeholder="0.00" oninput="calcChange()">
+
+          <div class="summary-row" id="change-row" style="display:none;padding:8px;background:rgba(39,174,96,0.1);border-radius:8px;margin-top:8px">
+            <span style="color:var(--accent);font-weight:600">🪙 เงินทอน</span>
+            <span id="change-amount" style="color:var(--accent);font-weight:700;font-size:16px">฿0.00</span>
+          </div>
+
+          <button class="btn btn-success" onclick="checkout()" style="margin-top:12px">
+            <span class="material-icons">receipt</span> ชำระเงิน & พิมพ์ใบเสร็จ
+          </button>
+          <button class="btn btn-danger" onclick="clearCart()">
+            <span class="material-icons" style="font-size:18px">delete</span> ล้างตะกร้า
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== INVENTORY PAGE ===== -->
+  <div class="page" id="page-inventory">
+    <div class="page-header">
+      <div>
+        <div class="page-title"><span class="material-icons" style="color:var(--primary)">inventory_2</span> คลังสินค้า (Inventory)</div>
+        <div class="page-subtitle">จัดการสต๊อก, เปิด/ปิดสถานะการขาย, ติดตามระดับสินค้า</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-secondary" style="width:auto;padding:10px 16px" onclick="exportCSV()">
+          <span class="material-icons" style="font-size:18px">download</span> Export CSV
+        </button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <div class="table-search">
+        <div class="search-box" style="max-width:300px">
+          <span class="material-icons" style="color:var(--text-secondary);font-size:20px">search</span>
+          <input type="text" placeholder="ค้นหาสินค้า..." oninput="filterInventory(this.value)">
+        </div>
+        <div style="font-size:13px;color:var(--text-secondary);margin-left:auto">
+          แสดง <strong id="inv-count">16</strong> รายการ
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table" id="inventory-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>ชื่อสินค้า</th>
+              <th>หมวดหมู่</th>
+              <th>ราคา</th>
+              <th>จำนวนคงเหลือ</th>
+              <th>ระดับสต๊อก</th>
+              <th>สถานะ</th>
+              <th>เปิด/ปิดขาย</th>
+            </tr>
+          </thead>
+          <tbody id="inventory-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PRODUCTS PAGE ===== -->
+  <div class="page" id="page-products">
+    <div class="page-header">
+      <div>
+        <div class="page-title"><span class="material-icons" style="color:var(--primary)">category</span> สินค้าทั้งหมด</div>
+        <div class="page-subtitle">รายการสินค้า KITHub จำนวน 16 รายการ ใน 4 หมวดหมู่</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="cat-btn active" id="prod-filter-all" onclick="filterProductsPage(this,'all')">ทั้งหมด</button>
+        <button class="cat-btn" onclick="filterProductsPage(this,'Microcontroller')">Microcontroller</button>
+        <button class="cat-btn" onclick="filterProductsPage(this,'Sensors')">Sensors</button>
+        <button class="cat-btn" onclick="filterProductsPage(this,'Display & Output')">Display & Output</button>
+        <button class="cat-btn" onclick="filterProductsPage(this,'Starter Kits')">Starter Kits</button>
+      </div>
+    </div>
+    <div class="products-grid" id="products-grid"></div>
+  </div>
+
+</main>
+
+<!-- RECEIPT MODAL -->
+<div class="modal-overlay" id="receipt-modal" style="display:none" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🧾 ใบเสร็จรับเงิน</div>
+      <button class="icon-btn" onclick="closeReceiptModal()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="receipt" id="receipt-content"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeReceiptModal()" style="flex:1">ปิด</button>
+      <button class="btn btn-primary" onclick="printReceipt()" style="flex:1">
+        <span class="material-icons" style="font-size:18px">print</span> พิมพ์ใบเสร็จ
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SNACKBAR -->
+<div class="snackbar" id="snackbar"></div>
+
+<script>
+// ===== DATA =====
+const products = [
+  // Microcontroller
+  { id:1, name:'Arduino Uno R3', category:'Microcontroller', price:350, stock:25, maxStock:30, enabled:true,
+    img:'https://images.unsplash.com/photo-1518770660439-4636190af475?w=300&h=200&fit=crop' },
+  { id:2, name:'Arduino Nano', category:'Microcontroller', price:180, stock:40, maxStock:50, enabled:true,
+    img:'https://images.unsplash.com/photo-1562408590-e32931084e23?w=300&h=200&fit=crop' },
+  { id:3, name:'Raspberry Pi 4 (4GB)', category:'Microcontroller', price:2490, stock:8, maxStock:15, enabled:true,
+    img:'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=300&h=200&fit=crop' },
+  { id:4, name:'ESP32 DevKit', category:'Microcontroller', price:220, stock:3, maxStock:20, enabled:true,
+    img:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=200&fit=crop' },
+  // Sensors
+  { id:5, name:'DHT22 Temp & Humidity', category:'Sensors', price:120, stock:60, maxStock:80, enabled:true,
+    img:'https://images.unsplash.com/photo-1555664424-778a1e5e1b48?w=300&h=200&fit=crop' },
+  { id:6, name:'HC-SR04 Ultrasonic', category:'Sensors', price:85, stock:45, maxStock:60, enabled:true,
+    img:'https://images.unsplash.com/photo-1555664424-778a1e5e1b48?w=300&h=200&fit=crop' },
+  { id:7, name:'PIR Motion Sensor', category:'Sensors', price:95, stock:2, maxStock:30, enabled:true,
+    img:'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300&h=200&fit=crop' },
+  { id:8, name:'MQ-2 Gas Sensor', category:'Sensors', price:150, stock:30, maxStock:40, enabled:true,
+    img:'https://images.unsplash.com/photo-1555664424-778a1e5e1b48?w=300&h=200&fit=crop' },
+  // Display & Output
+  { id:9, name:'OLED 0.96" I2C', category:'Display & Output', price:180, stock:20, maxStock:30, enabled:true,
+    img:'https://images.unsplash.com/photo-1592659762303-90081d34b277?w=300&h=200&fit=crop' },
+  { id:10, name:'LCD 16x2 with I2C', category:'Display & Output', price:150, stock:15, maxStock:25, enabled:true,
+    img:'https://images.unsplash.com/photo-1592659762303-90081d34b277?w=300&h=200&fit=crop' },
+  { id:11, name:'LED Strip WS2812B (1m)', category:'Display & Output', price:280, stock:12, maxStock:20, enabled:true,
+    img:'https://images.unsplash.com/photo-1592659762303-90081d34b277?w=300&h=200&fit=crop' },
+  { id:12, name:'Servo Motor SG90', category:'Display & Output', price:95, stock:35, maxStock:50, enabled:true,
+    img:'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300&h=200&fit=crop' },
+  // Starter Kits
+  { id:13, name:'Arduino Starter Kit', category:'Starter Kits', price:890, stock:10, maxStock:15, enabled:true,
+    img:'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=300&h=200&fit=crop' },
+  { id:14, name:'Raspberry Pi Starter Kit', category:'Starter Kits', price:3290, stock:4, maxStock:10, enabled:true,
+    img:'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=300&h=200&fit=crop' },
+  { id:15, name:'IoT Sensor Kit', category:'Starter Kits', price:1490, stock:7, maxStock:12, enabled:true,
+    img:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=200&fit=crop' },
+  { id:16, name:'STEM Robot Kit', category:'Starter Kits', price:2890, stock:3, maxStock:10, enabled:true,
+    img:'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=300&h=200&fit=crop' },
+];
+
+const discountCodes = {
+  'KITHUB10': { type:'percent', value:10, label:'-10%' },
+  'STEM20':   { type:'percent', value:20, label:'-20%' },
+  'VIP50':    { type:'fixed',   value:50, label:'-฿50' },
+};
+
+const salesData = [8200, 15300, 11450, 18900, 9800, 22100, 18450];
+const salesDays = ['จ','อ','พ','พฤ','ศ','ส','อา'];
+
+const topProducts = [
+  { name:'Arduino Uno R3', sold:28, amount:9800 },
+  { name:'DHT22 Temp & Humidity', sold:22, amount:2640 },
+  { name:'Raspberry Pi 4 (4GB)', sold:15, amount:37350 },
+  { name:'Arduino Starter Kit', sold:14, amount:12460 },
+  { name:'ESP32 DevKit', sold:11, amount:2420 },
+];
+
+let cart = [];
+let appliedDiscount = null;
+let currentPosCategory = 'all';
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  initDashboard();
+  initPOS();
+  initInventory();
+  initProducts();
+});
+
+// ===== NAVIGATION =====
+function goToPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelector(`[data-page="${page}"]`).classList.add('active');
+}
+
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', e => {
+    e.preventDefault();
+    goToPage(tab.dataset.page);
+  });
+});
+
+// ===== DASHBOARD =====
+function initDashboard() {
+  const now = new Date();
+  const days = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+  const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  document.getElementById('dash-date').textContent = `วัน${days[now.getDay()]}ที่ ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear() + 543}`;
+
+  renderBarChart();
+  renderTopProducts();
+  renderLowStockAlerts();
+}
+
+function refreshDashboard() {
+  showSnackbar('🔄 รีเฟรชข้อมูลเรียบร้อย', 'success');
+}
+
+function renderBarChart() {
+  const chart = document.getElementById('sales-chart');
+  const max = Math.max(...salesData);
+  chart.innerHTML = salesData.map((v, i) => `
+    <div class="bar-item">
+      <div class="bar-value">฿${(v/1000).toFixed(1)}k</div>
+      <div class="bar" style="height:${(v/max)*130}px" title="${salesDays[i]}: ฿${v.toLocaleString()}"></div>
+      <div class="bar-label">${salesDays[i]}</div>
+    </div>
+  `).join('');
+}
+
+function renderTopProducts() {
+  const rankClasses = ['gold','silver','bronze','other','other'];
+  const list = document.getElementById('top-products-list');
+  list.innerHTML = topProducts.map((p, i) => `
+    <div class="product-rank-item">
+      <div class="rank-num ${rankClasses[i]}">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-name">${p.name}</div>
+        <div class="rank-sold">ขายได้ ${p.sold} ชิ้น</div>
+      </div>
+      <div class="rank-amount">฿${p.amount.toLocaleString()}</div>
+    </div>
+  `).join('');
+}
+
+function renderLowStockAlerts() {
+  const lowItems = products.filter(p => p.stock < 5);
+  const container = document.getElementById('low-stock-alerts');
+  document.getElementById('stat-lowstock').textContent = lowItems.length;
+  container.innerHTML = lowItems.map(p => `
+    <div class="alert-item">
+      <div class="alert-dot"></div>
+      <div class="alert-text">
+        <strong>${p.name}</strong> — หมวด ${p.category}
+      </div>
+      <div class="alert-stock">เหลือ ${p.stock} ชิ้น</div>
+    </div>
+  `).join('');
+}
+
+// ===== POS =====
+function initPOS() {
+  renderPosProducts();
+}
+
+function renderPosProducts(filter = 'all', search = '') {
+  const grid = document.getElementById('pos-product-grid');
+  const filtered = products.filter(p => {
+    const matchCat = filter === 'all' || p.category === filter;
+    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
+    return matchCat && matchSearch;
+  });
+
+  grid.innerHTML = filtered.map(p => {
+    const isLow = p.stock > 0 && p.stock < 5;
+    const isOut = p.stock === 0;
+    return `
+      <div class="product-card ${!p.enabled || isOut ? 'disabled' : ''} ${isLow ? 'low-stock' : ''}"
+           onclick="${p.enabled && !isOut ? `addToCart(${p.id})` : ''}">
+        <img class="product-img" src="${p.img}" alt="${p.name}"
+             onerror="this.src='https://via.placeholder.com/160x110/2C3E50/ffffff?text=KITHub'">
+        ${!p.enabled ? '<div class="out-of-stock-overlay">ปิดการขาย</div>' : ''}
+        ${isOut ? '<div class="out-of-stock-overlay">สินค้าหมด</div>' : ''}
+        ${isLow && p.enabled && !isOut ? `<div style="position:absolute;top:6px;right:6px;background:var(--danger);color:white;border-radius:10px;padding:2px 7px;font-size:10px;font-weight:700">เหลือ ${p.stock}!</div>` : ''}
+        <div class="product-info">
+          <div class="product-name">${p.name}</div>
+          <div class="product-price">฿${p.price.toLocaleString()}</div>
+          <div class="product-stock ${isLow ? 'low' : ''}">
+            ${isOut ? '❌ หมดแล้ว' : isLow ? `⚠ เหลือ ${p.stock} ชิ้น` : `📦 ${p.stock} ชิ้น`}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function filterByCategory(btn, cat) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPosCategory = cat;
+  filterPosProducts();
+}
+
+function filterPosProducts() {
+  const search = document.getElementById('pos-search').value;
+  renderPosProducts(currentPosCategory, search);
+}
+
+function addToCart(id) {
+  const product = products.find(p => p.id === id);
+  if (!product || !product.enabled || product.stock === 0) return;
+
+  const existing = cart.find(item => item.id === id);
+  if (existing) {
+    if (existing.qty >= product.stock) {
+      showSnackbar(`⚠ สินค้าในตะกร้าเต็มแล้ว (stock: ${product.stock})`, 'warning');
+      return;
+    }
+    existing.qty++;
+  } else {
+    cart.push({ id, name: product.name, price: product.price, qty: 1, maxQty: product.stock });
+  }
+
+  updateCartUI();
+  showSnackbar(`✅ เพิ่ม "${product.name}" ลงตะกร้า`, 'success');
+}
+
+function updateQty(id, delta) {
+  const item = cart.find(i => i.id === id);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) {
+    cart = cart.filter(i => i.id !== id);
+  }
+  updateCartUI();
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(i => i.id !== id);
+  updateCartUI();
+}
+
+function clearCart() {
+  cart = [];
+  appliedDiscount = null;
+  document.getElementById('discount-code').value = '';
+  document.getElementById('cash-received').value = '';
+  document.getElementById('change-row').style.display = 'none';
+  document.getElementById('discount-row').style.display = 'none';
+  updateCartUI();
+}
+
+function updateCartUI() {
+  const cartItemsEl = document.getElementById('cart-items');
+  const emptyEl = document.getElementById('cart-empty');
+  const countLabel = document.getElementById('cart-count-label');
+  const badge = document.getElementById('cart-badge');
+  const totalQty = cart.reduce((s, i) => s + i.qty, 0);
+
+  countLabel.textContent = totalQty;
+  badge.textContent = totalQty;
+  badge.classList.toggle('hidden', totalQty === 0);
+
+  if (cart.length === 0) {
+    cartItemsEl.innerHTML = '';
+    cartItemsEl.appendChild(emptyEl);
+    emptyEl.style.display = 'flex';
+  } else {
+    emptyEl.style.display = 'none';
+    cartItemsEl.innerHTML = cart.map(item => `
+      <div class="cart-item">
+        <div class="cart-item-name">${item.name}</div>
+        <div>
+          <div class="cart-item-price">฿${item.price.toLocaleString()}</div>
+        </div>
+        <div class="qty-controls">
+          <button class="qty-btn minus" onclick="updateQty(${item.id}, -1)">−</button>
+          <span class="qty-num">${item.qty}</span>
+          <button class="qty-btn plus" onclick="updateQty(${item.id}, 1)">+</button>
+        </div>
+        <div class="cart-item-total">฿${(item.price * item.qty).toLocaleString()}</div>
+        <button class="del-btn" onclick="removeFromCart(${item.id})">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+    `).join('');
+    cartItemsEl.appendChild(emptyEl);
+  }
+
+  calcTotals();
+}
+
+function calcTotals() {
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  let discountAmt = 0;
+
+  if (appliedDiscount) {
+    const disc = appliedDiscount;
+    if (disc.type === 'percent') discountAmt = subtotal * disc.value / 100;
+    else discountAmt = Math.min(disc.value, subtotal);
+  }
+
+  const afterDiscount = subtotal - discountAmt;
+  const vat = afterDiscount * 0.07;
+  const grand = afterDiscount + vat;
+
+  document.getElementById('subtotal').textContent = `฿${subtotal.toLocaleString('th-TH', {minimumFractionDigits:2})}`;
+  document.getElementById('vat-amount').textContent = `฿${vat.toLocaleString('th-TH', {minimumFractionDigits:2})}`;
+  document.getElementById('grand-total').textContent = `฿${grand.toLocaleString('th-TH', {minimumFractionDigits:2})}`;
+
+  const discRow = document.getElementById('discount-row');
+  if (discountAmt > 0) {
+    discRow.style.display = 'flex';
+    document.getElementById('discount-amount').textContent = `-฿${discountAmt.toLocaleString('th-TH', {minimumFractionDigits:2})}`;
+  } else {
+    discRow.style.display = 'none';
+  }
+
+  calcChange();
+}
+
+function calcChange() {
+  const cash = parseFloat(document.getElementById('cash-received').value) || 0;
+  const grand = parseFloat(document.getElementById('grand-total').textContent.replace(/[฿,]/g,'')) || 0;
+  const changeRow = document.getElementById('change-row');
+  if (cash > 0 && grand > 0) {
+    const change = cash - grand;
+    changeRow.style.display = 'flex';
+    document.getElementById('change-amount').textContent = `฿${change.toLocaleString('th-TH', {minimumFractionDigits:2})}`;
+    document.getElementById('change-amount').style.color = change >= 0 ? 'var(--accent)' : 'var(--danger)';
+  } else {
+    changeRow.style.display = 'none';
+  }
+}
+
+function applyDiscount() {
+  const code = document.getElementById('discount-code').value.trim().toUpperCase();
+  if (!code) { showSnackbar('กรุณาใส่รหัสส่วนลด', 'warning'); return; }
+  if (discountCodes[code]) {
+    appliedDiscount = discountCodes[code];
+    showSnackbar(`🎉 ใช้รหัส "${code}" สำเร็จ! ส่วนลด ${appliedDiscount.label}`, 'success');
+    calcTotals();
+  } else {
+    showSnackbar('❌ รหัสส่วนลดไม่ถูกต้อง', 'error');
+    appliedDiscount = null;
+    document.getElementById('discount-code').value = '';
+    calcTotals();
+  }
+}
+
+function checkout() {
+  if (cart.length === 0) { showSnackbar('⚠ ยังไม่มีสินค้าในตะกร้า', 'warning'); return; }
+  const cash = parseFloat(document.getElementById('cash-received').value) || 0;
+  const grand = parseFloat(document.getElementById('grand-total').textContent.replace(/[฿,]/g,'')) || 0;
+  if (cash < grand && cash > 0) { showSnackbar('⚠ รับเงินไม่เพียงพอ', 'error'); return; }
+
+  // Deduct stock
+  cart.forEach(item => {
+    const p = products.find(p => p.id === item.id);
+    if (p) p.stock -= item.qty;
+  });
+
+  generateReceipt();
+  document.getElementById('receipt-modal').style.display = 'flex';
+}
+
+function generateReceipt() {
+  const now = new Date();
+  const dateStr = now.toLocaleString('th-TH');
+  const receiptNo = 'KH-' + Date.now().toString().slice(-6);
+
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  let discountAmt = 0;
+  if (appliedDiscount) {
+    if (appliedDiscount.type === 'percent') discountAmt = subtotal * appliedDiscount.value / 100;
+    else discountAmt = Math.min(appliedDiscount.value, subtotal);
+  }
+  const afterDiscount = subtotal - discountAmt;
+  const vat = afterDiscount * 0.07;
+  const grand = afterDiscount + vat;
+  const cash = parseFloat(document.getElementById('cash-received').value) || grand;
+  const change = cash - grand;
+
+  const fmt = n => n.toLocaleString('th-TH', {minimumFractionDigits:2});
+
+  document.getElementById('receipt-content').innerHTML = `
+    <div class="receipt-header">
+      <h2>🔧 KITHub</h2>
+      <p>Electronics & STEM Store</p>
+      <p>Tel: 02-xxx-xxxx | kithub.th</p>
+      <p style="margin-top:8px;font-size:12px">เลขที่ใบเสร็จ: <strong>${receiptNo}</strong></p>
+      <p style="font-size:11px">${dateStr}</p>
+    </div>
+    <hr class="receipt-divider">
+    ${cart.map(item => `
+      <div class="receipt-item">
+        <span>${item.name} x${item.qty}</span>
+        <span>฿${fmt(item.price * item.qty)}</span>
+      </div>
+    `).join('')}
+    <hr class="receipt-divider">
+    <div class="receipt-item"><span>ราคารวม</span><span>฿${fmt(subtotal)}</span></div>
+    ${discountAmt > 0 ? `<div class="receipt-item" style="color:var(--accent)"><span>ส่วนลด (${appliedDiscount.label})</span><span>-฿${fmt(discountAmt)}</span></div>` : ''}
+    <div class="receipt-item" style="color:var(--text-secondary)"><span>VAT 7%</span><span>฿${fmt(vat)}</span></div>
+    <hr class="receipt-divider">
+    <div class="receipt-total"><span>รวมสุทธิ</span><span>฿${fmt(grand)}</span></div>
+    <hr class="receipt-divider">
+    <div class="receipt-item"><span>รับเงิน</span><span>฿${fmt(cash)}</span></div>
+    <div class="receipt-item" style="color:var(--accent);font-weight:700"><span>เงินทอน</span><span>฿${fmt(change)}</span></div>
+    <hr class="receipt-divider">
+    <div class="receipt-footer">
+      <p>ขอบคุณที่ใช้บริการ KITHub! 🙏</p>
+      <p>สอบถาม: Line @kithub | FB: KITHubStore</p>
+    </div>
+  `;
+}
+
+function closeReceiptModal() {
+  document.getElementById('receipt-modal').style.display = 'none';
+  // Clear after checkout
+  clearCart();
+  renderInventoryTable();
+  renderPosProducts(currentPosCategory);
+  renderLowStockAlerts();
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('receipt-modal')) closeReceiptModal();
+}
+
+function printReceipt() {
+  const content = document.getElementById('receipt-content').innerHTML;
+  const win = window.open('', '_blank', 'width=400,height=600');
+  win.document.write(`
+    <html><head>
+    <title>ใบเสร็จ KITHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt&display=swap" rel="stylesheet">
+    <style>
+      body { font-family: 'Courier New', monospace; padding: 20px; max-width: 320px; margin: auto; }
+      .receipt-header { text-align: center; margin-bottom: 16px; }
+      .receipt-header h2 { font-size: 20px; }
+      .receipt-divider { border: none; border-top: 1px dashed #ccc; margin: 10px 0; }
+      .receipt-item { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 0; }
+      .receipt-total { display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; padding: 6px 0; }
+      .receipt-footer { text-align: center; margin-top: 16px; font-size: 11px; }
+    </style></head>
+    <body>${content}</body></html>
+  `);
+  win.document.close();
+  setTimeout(() => win.print(), 500);
+}
+
+// ===== INVENTORY =====
+function initInventory() {
+  renderInventoryTable();
+}
+
+function renderInventoryTable(filter = '') {
+  const tbody = document.getElementById('inventory-tbody');
+  const filtered = products.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
+  document.getElementById('inv-count').textContent = filtered.length;
+
+  tbody.innerHTML = filtered.map((p, i) => {
+    const pct = Math.round((p.stock / p.maxStock) * 100);
+    const level = p.stock < 5 ? 'low' : p.stock < p.maxStock * 0.4 ? 'medium' : 'high';
+    const statusChip = p.stock === 0 ? 'low' : p.stock < 5 ? 'low' : 'active';
+    const statusLabel = p.stock === 0 ? 'หมด' : p.stock < 5 ? 'ใกล้หมด' : 'ปกติ';
+
+    return `
+      <tr>
+        <td style="font-weight:600;color:var(--text-secondary)">${i+1}</td>
+        <td>
+          <div style="font-weight:600">${p.name}</div>
+          ${p.stock < 5 && p.stock > 0 ? '<div style="font-size:11px;color:var(--danger)">⚠ ต้องสั่งสินค้าเพิ่ม</div>' : ''}
+        </td>
+        <td>
+          <span class="chip ${getCatClass(p.category)}">${p.category}</span>
+        </td>
+        <td style="font-weight:700;color:var(--primary)">฿${p.price.toLocaleString()}</td>
+        <td>
+          <span style="font-size:16px;font-weight:700;color:${p.stock < 5 ? 'var(--danger)' : 'var(--text-primary)'}">${p.stock}</span>
+          <span style="font-size:12px;color:var(--text-secondary)"> / ${p.maxStock}</span>
+        </td>
+        <td style="min-width:140px">
+          <div class="stock-progress">
+            <div class="progress-bar">
+              <div class="progress-fill ${level}" style="width:${pct}%"></div>
+            </div>
+            <span style="font-size:12px;min-width:30px">${pct}%</span>
+          </div>
+        </td>
+        <td><span class="chip ${statusChip}">${statusLabel}</span></td>
+        <td>
+          <label class="switch">
+            <input type="checkbox" ${p.enabled ? 'checked' : ''} onchange="toggleProduct(${p.id}, this.checked)">
+            <span class="slider"></span>
+          </label>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function getCatClass(cat) {
+  const map = {
+    'Microcontroller': 'active',
+    'Sensors': 'warning',
+    'Display & Output': 'active',
+    'Starter Kits': 'low'
+  };
+  return map[cat] || 'active';
+}
+
+function filterInventory(val) {
+  renderInventoryTable(val);
+}
+
+function toggleProduct(id, enabled) {
+  const p = products.find(p => p.id === id);
+  if (p) {
+    p.enabled = enabled;
+    showSnackbar(`${enabled ? '✅ เปิด' : '🔴 ปิด'}การขาย "${p.name}"`, enabled ? 'success' : 'warning');
+    renderPosProducts(currentPosCategory);
+  }
+}
+
+function exportCSV() {
+  const rows = [['ID','ชื่อสินค้า','หมวด','ราคา','สต๊อก','สถานะ']];
+  products.forEach(p => rows.push([p.id, p.name, p.category, p.price, p.stock, p.enabled ? 'เปิด' : 'ปิด']));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'kithub-inventory.csv'; a.click();
+  showSnackbar('📥 Export CSV เรียบร้อย', 'success');
+}
+
+// ===== PRODUCTS PAGE =====
+function initProducts() {
+  renderProductsGrid('all');
+}
+
+function renderProductsGrid(filter) {
+  const grid = document.getElementById('products-grid');
+  const catBadgeClass = { 'Microcontroller':'cat-micro', 'Sensors':'cat-sensor', 'Display & Output':'cat-display', 'Starter Kits':'cat-kit' };
+
+  const filtered = filter === 'all' ? products : products.filter(p => p.category === filter);
+
+  grid.innerHTML = filtered.map(p => {
+    const isLow = p.stock < 5;
+    return `
+      <div class="product-full-card">
+        <img class="product-full-img" src="${p.img}" alt="${p.name}"
+             onerror="this.src='https://via.placeholder.com/230x160/2C3E50/ffffff?text=KITHub'">
+        <span class="product-category-badge ${catBadgeClass[p.category]}">${p.category}</span>
+        ${isLow ? `<span style="position:absolute;top:10px;right:10px;background:var(--danger);color:white;border-radius:10px;padding:3px 8px;font-size:11px;font-weight:700">⚠ เหลือ ${p.stock}</span>` : ''}
+        <div class="product-full-info">
+          <div class="product-full-name">${p.name}</div>
+          <div class="product-full-price">฿${p.price.toLocaleString()} <span>/ ชิ้น</span></div>
+          <div style="margin-top:10px">
+            <div class="progress-bar" style="height:6px">
+              <div class="progress-fill ${p.stock < 5 ? 'low' : p.stock < p.maxStock * 0.4 ? 'medium' : 'high'}"
+                   style="width:${Math.round(p.stock/p.maxStock*100)}%"></div>
+            </div>
+            <div style="font-size:11px;color:var(--text-secondary);margin-top:4px">สต๊อก ${p.stock}/${p.maxStock} ชิ้น</div>
+          </div>
+        </div>
+        <div class="product-full-actions">
+          <div class="stock-info">
+            <span class="stock-num ${isLow ? 'low-stock' : ''}">📦 ${p.stock} ชิ้น</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <label class="switch" style="transform:scale(0.85)">
+              <input type="checkbox" ${p.enabled ? 'checked' : ''} onchange="toggleProduct(${p.id},this.checked)">
+              <span class="slider"></span>
+            </label>
+            <button class="btn btn-primary" style="width:auto;padding:7px 14px;margin:0;font-size:12px"
+                    onclick="addToCart(${p.id});goToPage('pos')">
+              <span class="material-icons" style="font-size:16px">add_shopping_cart</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function filterProductsPage(btn, cat) {
+  document.querySelectorAll('.page-header .cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProductsGrid(cat);
+}
+
+// ===== SNACKBAR =====
+function showSnackbar(msg, type = '') {
+  const sb = document.getElementById('snackbar');
+  sb.textContent = msg;
+  sb.className = 'snackbar ' + type;
+  sb.classList.add('show');
+  setTimeout(() => sb.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
